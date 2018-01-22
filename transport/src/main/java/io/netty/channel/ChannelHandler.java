@@ -32,14 +32,14 @@ import java.lang.annotation.Target;
  * <h3>Sub-types</h3>
  * <p>
  * {@link ChannelHandler} itself does not provide many methods, but you usually have to implement one of its subtypes:
- * <ul>
+ * <ul> 本身并不提供很多功能，需要实现子类 ChannelInboundHandler处理输入，实现ChannelOutboundHandler处理输出
  * <li>{@link ChannelInboundHandler} to handle inbound I/O events, and</li>
  * <li>{@link ChannelOutboundHandler} to handle outbound I/O operations.</li>
  * </ul>
  * </p>
  * <p>
  * Alternatively, the following adapter classes are provided for your convenience:
- * <ul>
+ * <ul> 或者继承适配器
  * <li>{@link ChannelInboundHandlerAdapter} to handle inbound I/O events,</li>
  * <li>{@link ChannelOutboundHandlerAdapter} to handle outbound I/O operations, and</li>
  * <li>{@link ChannelDuplexHandler} to handle both inbound and outbound events</li>

@@ -37,9 +37,9 @@ import java.net.SocketAddress;
  * <li>the {@linkplain ChannelConfig configuration parameters} of the channel (e.g. receive buffer size),</li>
  * <li>the I/O operations that the channel supports (e.g. read, write, connect, and bind), and</li>
  * <li>the {@link ChannelPipeline} which handles all I/O events and requests
- *     associated with the channel.</li>
+ * associated with the channel.</li>
  * </ul>
- *
+ * <p>
  * <h3>All I/O operations are asynchronous.</h3>
  * <p>
  * All I/O operations in Netty are asynchronous.  It means any I/O calls will
@@ -47,7 +47,7 @@ import java.net.SocketAddress;
  * been completed at the end of the call.  Instead, you will be returned with
  * a {@link ChannelFuture} instance which will notify you when the requested I/O
  * operation has succeeded, failed, or canceled.
- *
+ * <p>
  * <h3>Channels are hierarchical</h3>
  * <p>
  * A {@link Channel} can have a {@linkplain #parent() parent} depending on
@@ -60,14 +60,14 @@ import java.net.SocketAddress;
  * write a new {@link Channel} implementation that creates the sub-channels that
  * share one socket connection, as <a href="http://beepcore.org/">BEEP</a> and
  * <a href="http://en.wikipedia.org/wiki/Secure_Shell">SSH</a> do.
- *
+ * <p>
  * <h3>Downcast to access transport-specific operations</h3>
  * <p>
  * Some transports exposes additional operations that is specific to the
  * transport.  Down-cast the {@link Channel} to sub-type to invoke such
  * operations.  For example, with the old I/O datagram transport, multicast
  * join / leave operations are provided by {@link DatagramChannel}.
- *
+ * <p>
  * <h3>Release resources</h3>
  * <p>
  * It is important to call {@link #close()} or {@link #close(ChannelPromise)} to release all
@@ -90,7 +90,7 @@ public interface Channel extends AttributeMap, ChannelOutboundInvoker, Comparabl
      * Returns the parent of this channel.
      *
      * @return the parent channel.
-     *         {@code null} if this channel does not have a parent channel.
+     * {@code null} if this channel does not have a parent channel.
      */
     Channel parent();
 
@@ -126,7 +126,7 @@ public interface Channel extends AttributeMap, ChannelOutboundInvoker, Comparabl
      * information.
      *
      * @return the local address of this channel.
-     *         {@code null} if this channel is not bound.
+     * {@code null} if this channel is not bound.
      */
     SocketAddress localAddress();
 
@@ -137,12 +137,12 @@ public interface Channel extends AttributeMap, ChannelOutboundInvoker, Comparabl
      * information.
      *
      * @return the remote address of this channel.
-     *         {@code null} if this channel is not connected.
-     *         If this channel is not connected but it can receive messages
-     *         from arbitrary remote addresses (e.g. {@link DatagramChannel},
-     *         use {@link DatagramPacket#recipient()} to determine
-     *         the origination of the received message as this method will
-     *         return {@code null}.
+     * {@code null} if this channel is not connected.
+     * If this channel is not connected but it can receive messages
+     * from arbitrary remote addresses (e.g. {@link DatagramChannel},
+     * use {@link DatagramPacket#recipient()} to determine
+     * the origination of the received message as this method will
+     * return {@code null}.
      */
     SocketAddress remoteAddress();
 
@@ -194,16 +194,17 @@ public interface Channel extends AttributeMap, ChannelOutboundInvoker, Comparabl
     Channel flush();
 
     /**
+     * 封装了对 Java 底层 Socket 的操作, 是沟通 Netty 上层和 Java 底层的重要的桥梁
      * <em>Unsafe</em> operations that should <em>never</em> be called from user-code. These methods
      * are only provided to implement the actual transport, and must be invoked from an I/O thread except for the
      * following methods:
      * <ul>
-     *   <li>{@link #localAddress()}</li>
-     *   <li>{@link #remoteAddress()}</li>
-     *   <li>{@link #closeForcibly()}</li>
-     *   <li>{@link #register(EventLoop, ChannelPromise)}</li>
-     *   <li>{@link #deregister(ChannelPromise)}</li>
-     *   <li>{@link #voidPromise()}</li>
+     * <li>{@link #localAddress()}</li>
+     * <li>{@link #remoteAddress()}</li>
+     * <li>{@link #closeForcibly()}</li>
+     * <li>{@link #register(EventLoop, ChannelPromise)}</li>
+     * <li>{@link #deregister(ChannelPromise)}</li>
+     * <li>{@link #voidPromise()}</li>
      * </ul>
      */
     interface Unsafe {
@@ -242,7 +243,7 @@ public interface Channel extends AttributeMap, ChannelOutboundInvoker, Comparabl
          * Connect the {@link Channel} of the given {@link ChannelFuture} with the given remote {@link SocketAddress}.
          * If a specific local {@link SocketAddress} should be used it need to be given as argument. Otherwise just
          * pass {@code null} to it.
-         *
+         * <p>
          * The {@link ChannelPromise} will get notified once the connect operation was complete.
          */
         void connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise);

@@ -39,11 +39,29 @@ public final class DefaultChannelId implements ChannelId {
     private static final long serialVersionUID = 3884076183504074063L;
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(DefaultChannelId.class);
+    /**
+     * mac地址转换成的byte数组
+     */
     private static final byte[] MACHINE_ID;
+    /**
+     * 进程id转成byte数组的长度，由于是int，因此是4
+     */
     private static final int PROCESS_ID_LEN = 4;
+    /**
+     * 进程id
+     */
     private static final int PROCESS_ID;
+    /**
+     * 序列长度，由于是AtomicInteger 也占用4字节
+     */
     private static final int SEQUENCE_LEN = 4;
+    /**
+     * 时间戳成byte数组的长度
+     */
     private static final int TIMESTAMP_LEN = 8;
+    /**
+     * 会随机生成一个int类型
+     */
     private static final int RANDOM_LEN = 4;
 
     private static final AtomicInteger nextSequence = new AtomicInteger();
@@ -105,6 +123,10 @@ public final class DefaultChannelId implements ChannelId {
         MACHINE_ID = machineId;
     }
 
+    /**
+     * 获取进程id
+     * @return 进程id
+     */
     private static int defaultProcessId() {
         ClassLoader loader = null;
         String value;

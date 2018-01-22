@@ -94,7 +94,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         succeededFuture = new SucceededChannelFuture(channel, null);
         voidPromise =  new VoidChannelPromise(channel, true);
 
+        // 实现了ChannelOutboundHandler
         tail = new TailContext(this);
+        // 实现了ChannelOutboundHandler和实现了ChannelInboundHandler
         head = new HeadContext(this);
 
         head.next = tail;
@@ -1141,8 +1143,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
-    private void callHandlerCallbackLater(AbstractChannelHandlerContext ctx, boolean added) {
-        assert !registered;
+        private void callHandlerCallbackLater(AbstractChannelHandlerContext ctx, boolean added) {
+            assert !registered;
 
         PendingHandlerCallback task = added ? new PendingHandlerAddedTask(ctx) : new PendingHandlerRemovedTask(ctx);
         PendingHandlerCallback pending = pendingHandlerCallbackHead;

@@ -29,10 +29,16 @@ public class DefaultAttributeMap implements AttributeMap {
     private static final AtomicReferenceFieldUpdater<DefaultAttributeMap, AtomicReferenceArray> updater =
             AtomicReferenceFieldUpdater.newUpdater(DefaultAttributeMap.class, AtomicReferenceArray.class, "attributes");
 
+    /**
+     * 只有4个桶
+     */
     private static final int BUCKET_SIZE = 4;
-    private static final int MASK = BUCKET_SIZE  - 1;
+    private static final int MASK = BUCKET_SIZE - 1;
 
-    // Initialize lazily to reduce memory consumption; updated by AtomicReferenceFieldUpdater above.
+    /**
+     * Initialize lazily to reduce memory consumption; updated by AtomicReferenceFieldUpdater above.
+     * 延迟初始化以减少对内存的消耗
+     */
     @SuppressWarnings("UnusedDeclaration")
     private volatile AtomicReferenceArray<DefaultAttribute<?>> attributes;
 
@@ -44,6 +50,7 @@ public class DefaultAttributeMap implements AttributeMap {
         }
         AtomicReferenceArray<DefaultAttribute<?>> attributes = this.attributes;
         if (attributes == null) {
+            // 不适用ConcurrentHashMap的原因是内存消耗过大
             // Not using ConcurrentHashMap due to high memory consumption.
             attributes = new AtomicReferenceArray<DefaultAttribute<?>>(BUCKET_SIZE);
 
@@ -61,6 +68,7 @@ public class DefaultAttributeMap implements AttributeMap {
             DefaultAttribute<T> attr = new DefaultAttribute<T>(head, key);
             head.next = attr;
             attr.prev = head;
+            // 设置head成功,证明是桶中第一个，代表已经加入队列，可以返回
             if (attributes.compareAndSet(i, null, head)) {
                 // we were able to add it so return the attr right away
                 return attr;
@@ -69,9 +77,10 @@ public class DefaultAttributeMap implements AttributeMap {
             }
         }
 
+        // 并发加入队列，加载队列尾部
         synchronized (head) {
             DefaultAttribute<?> curr = head;
-            for (;;) {
+            for (; ; ) {
                 DefaultAttribute<?> next = curr.next;
                 if (next == null) {
                     DefaultAttribute<T> attr = new DefaultAttribute<T>(head, key);
@@ -80,6 +89,7 @@ public class DefaultAttributeMap implements AttributeMap {
                     return attr;
                 }
 
+                // 已经存在
                 if (next.key == key && !next.removed) {
                     return (Attribute<T>) next;
                 }
@@ -93,6 +103,7 @@ public class DefaultAttributeMap implements AttributeMap {
         if (key == null) {
             throw new NullPointerException("key");
         }
+        // 数组不存在
         AtomicReferenceArray<DefaultAttribute<?>> attributes = this.attributes;
         if (attributes == null) {
             // no attribute exists
@@ -101,6 +112,7 @@ public class DefaultAttributeMap implements AttributeMap {
 
         int i = index(key);
         DefaultAttribute<?> head = attributes.get(i);
+        // 头结点不存在
         if (head == null) {
             // No attribute exists which point to the bucket in which the head should be located
             return false;
@@ -182,7 +194,11 @@ public class DefaultAttributeMap implements AttributeMap {
             remove0();
         }
 
+        /**
+         * 移出队列
+         */
         private void remove0() {
+            // 防止并发修改队列
             synchronized (head) {
                 if (prev == null) {
                     // Removed before.
