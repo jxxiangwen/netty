@@ -102,6 +102,7 @@ final class ScheduledFutureTask<V> extends PromiseTask<V> implements ScheduledFu
             return 0;
         }
 
+        // 定时队列会根据截止时间排序
         ScheduledFutureTask<?> that = (ScheduledFutureTask<?>) o;
         long d = deadlineNanos() - that.deadlineNanos();
         if (d < 0) {

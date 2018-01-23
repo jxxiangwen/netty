@@ -20,6 +20,9 @@ import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Iterator;
 
+/**
+ * 替换SelectorImpl中set的原因是只用到add接口，这样可以在O(1)时间完成插入
+ */
 final class SelectedSelectionKeySet extends AbstractSet<SelectionKey> {
 
     SelectionKey[] keys;
