@@ -134,8 +134,10 @@ final class ScheduledFutureTask<V> extends PromiseTask<V> implements ScheduledFu
                     if (!executor().isShutdown()) {
                         long p = periodNanos;
                         if (p > 0) {
+                            // fix rate任务
                             deadlineNanos += p;
                         } else {
+                            // fix delay任务
                             deadlineNanos = nanoTime() - p;
                         }
                         if (!isCancelled()) {
