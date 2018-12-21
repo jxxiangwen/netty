@@ -19,6 +19,7 @@ import java.nio.channels.SelectionKey;
 import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * 替换SelectorImpl中set的原因是只用到add接口，这样可以在O(1)时间完成插入
@@ -47,11 +48,6 @@ final class SelectedSelectionKeySet extends AbstractSet<SelectionKey> {
     }
 
     @Override
-    public int size() {
-        return size;
-    }
-
-    @Override
     public boolean remove(Object o) {
         return false;
     }
@@ -62,8 +58,33 @@ final class SelectedSelectionKeySet extends AbstractSet<SelectionKey> {
     }
 
     @Override
+    public int size() {
+        return size;
+    }
+
+    @Override
     public Iterator<SelectionKey> iterator() {
-        throw new UnsupportedOperationException();
+        return new Iterator<SelectionKey>() {
+            private int idx;
+
+            @Override
+            public boolean hasNext() {
+                return idx < size;
+            }
+
+            @Override
+            public SelectionKey next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException();
+                }
+                return keys[idx++];
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     void reset() {
