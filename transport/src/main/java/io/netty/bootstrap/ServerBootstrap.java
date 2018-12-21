@@ -144,7 +144,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         synchronized (options) {
             setChannelOptions(channel, options, logger);
         }
-
+        // 绑定属性
         final Map<AttributeKey<?>, Object> attrs = attrs0();
         synchronized (attrs) {
             for (Entry<AttributeKey<?>, Object> e : attrs.entrySet()) {
@@ -244,6 +244,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         @Override
         @SuppressWarnings("unchecked")
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
+            // 由于这个channel是serverSocketChannel，因此传入的对象是个channel
             final Channel child = (Channel) msg;
 
             child.pipeline().addLast(childHandler);

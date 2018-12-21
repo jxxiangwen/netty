@@ -122,6 +122,9 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
     }
 
     @Override
+    /**
+     * 为什么可以传递object... args，因为最终父类会调用子类的newChild,子类知道args里面是什么
+     */
     protected EventLoop newChild(Executor executor, Object... args) throws Exception {
         return new NioEventLoop(this, executor, (SelectorProvider) args[0],
             ((SelectStrategyFactory) args[1]).newSelectStrategy(), (RejectedExecutionHandler) args[2]);

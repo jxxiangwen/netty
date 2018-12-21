@@ -55,12 +55,15 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
         super.doBeginRead();
     }
 
+    /**
+     * 负责 channel 底层的读写等
+     */
     private final class NioMessageUnsafe extends AbstractNioUnsafe {
 
         private final List<Object> readBuf = new ArrayList<Object>();
 
         @Override
-        public void read() {
+        public void read() {// 读取
             assert eventLoop().inEventLoop();
             final ChannelConfig config = config();
             final ChannelPipeline pipeline = pipeline();
@@ -123,7 +126,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
     }
 
     @Override
-    protected void doWrite(ChannelOutboundBuffer in) throws Exception {
+    protected void doWrite(ChannelOutboundBuffer in) throws Exception {//写入
         final SelectionKey key = selectionKey();
         final int interestOps = key.interestOps();
 

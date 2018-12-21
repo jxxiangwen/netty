@@ -52,10 +52,10 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
 
     /**
      * Create a new instance.
-     *
-     * @param nThreads          the number of threads that will be used by this instance.
-     * @param executor          the Executor to use, or {@code null} if the default should be used.
-     * @param args              arguments which will passed to each {@link #newChild(Executor, Object...)} call
+     *nThreads event_Loop线程数量，executor:执行线程  args:选择策略工厂，和线程拒绝策略
+     * @param nThreads          the number of threads that will be used by this instance. event_Loop线程数量
+     * @param executor          the Executor to use, or {@code null} if the default should be used. 执行线程
+     * @param args              arguments which will passed to each {@link #newChild(Executor, Object...)} call 一般传递选择策略工厂和线程拒绝策略
      */
     protected MultithreadEventExecutorGroup(int nThreads, Executor executor, Object... args) {
         this(nThreads, executor, DefaultEventExecutorChooserFactory.INSTANCE, args);
@@ -76,7 +76,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         }
 
         if (executor == null) {
-            // 每次都会新生成一个FastThreadLocalThread
+            // 每次都会新生成一个FastThreadLocalThread,会在run方法中循环执行队列中的任务
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
 
@@ -119,8 +119,8 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         final FutureListener<Object> terminationListener = new FutureListener<Object>() {
             @Override
             public void operationComplete(Future<Object> future) throws Exception {
+                    // 只有最后一个termination调用才会相等,相当于等待子线程全部结束,才标记成功
                 if (terminatedChildren.incrementAndGet() == children.length) {
-                    // 只有最后一个termination调用才会相等
                     terminationFuture.setSuccess(null);
                 }
             }

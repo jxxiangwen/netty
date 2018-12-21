@@ -46,6 +46,9 @@ import io.netty.util.internal.TypeParameterMatcher;
 public abstract class MessageToByteEncoder<I> extends ChannelOutboundHandlerAdapter {
 
     private final TypeParameterMatcher matcher;
+    /**
+     * 使用直接内存
+     */
     private final boolean preferDirect;
 
     /**
@@ -99,16 +102,20 @@ public abstract class MessageToByteEncoder<I> extends ChannelOutboundHandlerAdap
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         ByteBuf buf = null;
         try {
+            // 是否是子类需要处理的类型
             if (acceptOutboundMessage(msg)) {
                 @SuppressWarnings("unchecked")
                 I cast = (I) msg;
+                // 分配buf
                 buf = allocateBuffer(ctx, cast, preferDirect);
                 try {
+                    // 调用子类编码
                     encode(ctx, cast, buf);
                 } finally {
+                    // 已经将case写如buf，可以释放
                     ReferenceCountUtil.release(cast);
                 }
-
+                // 存在内容就要写出
                 if (buf.isReadable()) {
                     ctx.write(buf, promise);
                 } else {

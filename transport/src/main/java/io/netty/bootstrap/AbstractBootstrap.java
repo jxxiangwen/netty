@@ -288,6 +288,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
+        // 初始化并且注册，会创建channel
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
@@ -326,8 +327,9 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
+            // 创建channel
             channel = channelFactory.newChannel();
-            // 设置option和AttributeKey
+            // 加入pipeline，设置option和AttributeKey
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {
@@ -339,7 +341,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         }
 
         // 注册channel到EventLoopGroup中,使用AbstractChannel内部类AbstractUnsafe中的register
-        // 实际使用的是子类Channel(比如AbstractNioChannel)中的doRegister注册
+        // 实际使用的是子类Channel(比如AbstractNioChannel)中的doRegister注册,doRegister会注册select事件
         // client group 返回workGroup 而server 返回bossGroup
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
@@ -483,7 +485,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
                 .append('(').append(config()).append(')');
         return buf.toString();
     }
-
+    // 装饰器模式
     static final class PendingRegistrationPromise extends DefaultChannelPromise {
 
         // Is set to the correct EventExecutor once the registration was successful. Otherwise it will

@@ -401,7 +401,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     protected boolean runAllTasks(long timeoutNanos) {
         // 将ScheduledTask放入taskQueue
         fetchFromScheduledTaskQueue();
-        // 从taskQueue中去除任务
+        // 从taskQueue中取出任务
         Runnable task = pollTask();
         if (task == null) {
             afterRunningAllTasks();

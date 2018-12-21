@@ -50,7 +50,7 @@ public class DefaultAttributeMap implements AttributeMap {
         }
         AtomicReferenceArray<DefaultAttribute<?>> attributes = this.attributes;
         if (attributes == null) {
-            // 不适用ConcurrentHashMap的原因是内存消耗过大
+            // 不使用ConcurrentHashMap的原因是内存消耗过大
             // Not using ConcurrentHashMap due to high memory consumption.
             attributes = new AtomicReferenceArray<DefaultAttribute<?>>(BUCKET_SIZE);
 

@@ -70,7 +70,9 @@ public final class EchoServer {
              });
 
             // Start the server.
-            ChannelFuture f = b.bind(PORT).sync();
+            ChannelFuture f = b.bind(PORT).addListener(future -> {
+
+            }).sync();
 
             // Wait until the server socket is closed.
             f.channel().closeFuture().sync();

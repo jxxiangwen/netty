@@ -31,7 +31,8 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
 
     @SuppressWarnings("unchecked")
     @Override
-    public EventExecutorChooser newChooser(EventExecutor[] executors) {
+    public EventExecutorChooser
+    newChooser(EventExecutor[] executors) {
         if (isPowerOfTwo(executors.length)) {
             // 使用&查找下标,相对高效
             return new PowerOfTwoEventExecutorChooser(executors);

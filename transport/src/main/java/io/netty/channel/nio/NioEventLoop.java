@@ -133,8 +133,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
     /**
      * 这个参数提供了一个粗略的机制,用来大致控制处理IO相关(socket 读,链接,关闭,挂起等)
-     * 和非IO相关任务的时间分配比.非IO任务是,由于使用Executor接口,例如Executor#execute(..),
-     * 而在EventLoopGroup队列中的Runnable对象.参数值越小,越多的时间将消耗在非IO任务上.
+     * 和非IO相关任务的时间分配比.默认值50代表提交的任务和io任务各占一半时间，值越高io任务时间
+     * 越长
      */
     private volatile int ioRatio = 50;
     private int cancelledKeys;
@@ -162,7 +162,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     }
 
     private static final class SelectorTuple {
-        final Selector unwrappedSelector;
+        final Selector unwrappedSelector;// 未经过包装的select ，一般是java平台提供的selector
         final Selector selector;
 
         SelectorTuple(Selector unwrappedSelector) {
@@ -773,7 +773,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         try {
             int selectCnt = 0;
             long currentTimeNanos = System.nanoTime();
-            long selectDeadLineNanos = currentTimeNanos + delayNanos(currentTimeNanos);
+            long selectDeadLineNanos = currentTimeNanos + delayNanos(currentTimeNanos);// 结果是定时任务过期时间
             for (; ; ) {
                 // 第一次循环
                 // 如果没有定时任务，返回默认1s的delay，求得超时时间是1s
@@ -805,7 +805,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
                 if (selectedKeys != 0 || oldWakenUp || wakenUp.get() || hasTasks() || hasScheduledTasks()) {
                     // - Selected something, 有IO准备好
-                    // - waken up by user, or 用户换新
+                    // - waken up by user, or 用户唤醒
                     // - the task queue has a pending task. 有新任务
                     // - a scheduled task is ready for processing 有定时任务应该被执行，比如delay到了
                     break;

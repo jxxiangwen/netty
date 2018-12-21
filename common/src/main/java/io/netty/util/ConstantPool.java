@@ -109,7 +109,7 @@ public abstract class ConstantPool<T extends Constant<T>> {
                 return tempConstant;
             }
         }
-
+        // 相当于有争用
         throw new IllegalArgumentException(String.format("'%s' is already in use", name));
     }
 

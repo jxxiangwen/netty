@@ -56,7 +56,7 @@ public abstract class ChannelInitializer<C extends Channel> extends ChannelInbou
     // We use a ConcurrentMap as a ChannelInitializer is usually shared between all Channels in a Bootstrap /
     // ServerBootstrap. This way we can reduce the memory usage compared to use Attributes.
     /**
-     * 由于ChannelInitializer是共享的，使用此map来判断某个ChannelHandlerContext中是否初始化过
+     * 由于ChannelInitializer是共享的，使用此map来判断某个ChannelHandlerContext中是否初始化过,在initChannel方法使用
      */
     private final ConcurrentMap<ChannelHandlerContext, Boolean> initMap = PlatformDependent.newConcurrentHashMap();
 

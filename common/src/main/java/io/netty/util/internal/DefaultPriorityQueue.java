@@ -26,7 +26,7 @@ import static io.netty.util.internal.PriorityQueueNode.INDEX_NOT_IN_QUEUE;
 /**
  * A priority queue which uses natural ordering of elements. Elements are also required to be of type
  * {@link PriorityQueueNode} for the purpose of maintaining the index in the priority queue.
- * @param <T> The object that is maintained in the queue.
+ * @param <T> The object that is maintained in the queue. 小根堆
  */
 public final class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQueue<T>
                                                                      implements PriorityQueue<T> {
@@ -272,18 +272,18 @@ public final class DefaultPriorityQueue<T extends PriorityQueueNode> extends Abs
 
     private void bubbleUp(int k, T node) {
         while (k > 0) {
-            int iParent = (k - 1) >>> 1;
+            int iParent = (k - 1) >>> 1;// 计算父节点
             T parent = queue[iParent];
 
             // If the bubbleUp node is less than the parent, then we have found a spot to insert and still maintain
-            // min-heap properties.
+            // min-heap properties. 如果比父节点小就找到了
             if (comparator.compare(node, parent) >= 0) {
                 break;
             }
 
-            // Bubble the parent down.
+            // Bubble the parent down. 父节点下移
             queue[k] = parent;
-            parent.priorityQueueIndex(this, k);
+            parent.priorityQueueIndex(this, k);//修改node在队列中的索引
 
             // Move k up the tree for the next iteration.
             k = iParent;

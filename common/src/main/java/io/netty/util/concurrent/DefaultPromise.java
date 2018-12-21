@@ -37,7 +37,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
             InternalLoggerFactory.getInstance(DefaultPromise.class.getName() + ".rejectedExecution");
     private static final int MAX_LISTENER_STACK_DEPTH = Math.min(8,
             SystemPropertyUtil.getInt("io.netty.defaultPromise.maxListenerStackDepth", 8));
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings("rawtypes") // 用于修改result
     private static final AtomicReferenceFieldUpdater<DefaultPromise, Object> RESULT_UPDATER =
             AtomicReferenceFieldUpdater.newUpdater(DefaultPromise.class, Object.class, "result");
     private static final Signal SUCCESS = Signal.valueOf(DefaultPromise.class, "SUCCESS");
@@ -472,8 +472,10 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
             }
             notifyingListeners = true;
             listeners = this.listeners;
+            // 将监听器设置为null，这样及时通知之后再次有添加者近来也不会重复通知
             this.listeners = null;
         }
+        // 不停通知，直到在通知的时候没有新的监听器被添加
         for (;;) {
             if (listeners instanceof DefaultFutureListeners) {
                 notifyListeners0((DefaultFutureListeners) listeners);
