@@ -32,6 +32,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 class UnpaddedInternalThreadLocalMap {
 
+    /**
+     * 非FastThreadLocalThread也就是jdk自带的Thread就是用jdk的ThreadLocal来创建map
+     */
     static final ThreadLocal<InternalThreadLocalMap> slowThreadLocalMap = new ThreadLocal<InternalThreadLocalMap>();
     static final AtomicInteger nextIndex = new AtomicInteger();
 

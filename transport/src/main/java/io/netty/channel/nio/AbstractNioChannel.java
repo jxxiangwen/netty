@@ -388,7 +388,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         for (;;) {
             try {
                 // Channel注册到Selector有两种方式，一种是调用Channel的register方法，第二种是设置SelectionKey的interestOps的值。
-                // ops = 0 将实际注册延迟
+                // ops = 0 将实际注册延迟,此处不会监控任何事件，在后面的Bind之后才会注册accept事件
                 selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
                 return;
             } catch (CancelledKeyException e) {
@@ -411,6 +411,10 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         eventLoop().cancel(selectionKey());
     }
 
+    /**
+     * 注册select事件 根据传递的readInterestOp添加，serverSocketChannel是accept事件 socketChannel是read事件
+     * @throws Exception
+     */
     @Override
     protected void doBeginRead() throws Exception {
         // Channel.read() or ChannelHandlerContext.read() was called

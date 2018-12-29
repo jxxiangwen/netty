@@ -56,17 +56,21 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
     }
 
     /**
-     * 负责 channel 底层的读写等
+     * NioServerSocketChannel 的unsafe 负责 channel 的接入
      */
     private final class NioMessageUnsafe extends AbstractNioUnsafe {
 
         private final List<Object> readBuf = new ArrayList<Object>();
 
+        /**
+         * 处理新连接的接入
+         */
         @Override
-        public void read() {// 读取
+        public void read() {
             assert eventLoop().inEventLoop();
             final ChannelConfig config = config();
             final ChannelPipeline pipeline = pipeline();
+            // allocHandle用于限制读取的速度
             final RecvByteBufAllocator.Handle allocHandle = unsafe().recvBufAllocHandle();
             allocHandle.reset(config);
 

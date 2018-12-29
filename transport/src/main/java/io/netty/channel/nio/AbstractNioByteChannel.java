@@ -254,13 +254,14 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
             Object msg = in.current();
             if (msg == null) {
                 // Wrote all messages.
+                // 如果没有消息就取消写事件关注
                 clearOpWrite();
                 // Directly return here so incompleteWrite(...) is not called.
                 return;
             }
             writeSpinCount -= doWriteInternal(in, msg);
         } while (writeSpinCount > 0);
-
+        // 如果自旋没写完就写一个关心写事件
         incompleteWrite(writeSpinCount < 0);
     }
 

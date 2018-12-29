@@ -450,6 +450,7 @@ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter 
 
                 if (outSize == out.size()) {
                     if (oldInputLength == in.readableBytes()) {
+                        // 本地读取的数据不够
                         break;
                     } else {
                         continue;

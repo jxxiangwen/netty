@@ -220,6 +220,7 @@ final class PooledDirectByteBuf extends PooledByteBuf<ByteBuffer> {
         }
         index = idx(index);
         tmpBuf.clear().position(index).limit(index + length);
+        // 写输出
         return out.write(tmpBuf);
     }
 

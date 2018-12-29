@@ -27,7 +27,8 @@ public class EchoServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        ctx.write(msg);
+        throw new RuntimeException("test");
+//        ctx.write(msg);
     }
 
     @Override

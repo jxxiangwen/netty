@@ -181,6 +181,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                 ch.eventLoop().execute(new Runnable() {
                     @Override
                     public void run() {
+                        // ServerBootstrapAcceptor会处理新连接的接入
                         pipeline.addLast(new ServerBootstrapAcceptor(
                                 ch, currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
                     }
@@ -244,7 +245,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         @Override
         @SuppressWarnings("unchecked")
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
-            // 由于这个channel是serverSocketChannel，因此传入的对象是个channel
+            // 由于这个channel是serverSocketChannel调用的，因此传入的对象是个channel
             final Channel child = (Channel) msg;
 
             child.pipeline().addLast(childHandler);

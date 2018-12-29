@@ -109,7 +109,7 @@ abstract class PoolArena<T> implements PoolArenaMetric {
         q025 = new PoolChunkList<T>(this, q050, 25, 75, chunkSize);
         q000 = new PoolChunkList<T>(this, q025, 1, 50, chunkSize);
         qInit = new PoolChunkList<T>(this, q000, Integer.MIN_VALUE, 25, chunkSize);
-
+        // init -> <-init   100 -> 75 -> 50 -> 25 -> 00
         q100.prevList(q075);
         q075.prevList(q050);
         q050.prevList(q025);
@@ -234,6 +234,7 @@ abstract class PoolArena<T> implements PoolArenaMetric {
 
     // Method must be called inside synchronized(this) { ... } block
     private void allocateNormal(PooledByteBuf<T> buf, int reqCapacity, int normCapacity) {
+        // 尝试在现有的chunk上去分配
         if (q050.allocate(buf, reqCapacity, normCapacity) || q025.allocate(buf, reqCapacity, normCapacity) ||
             q000.allocate(buf, reqCapacity, normCapacity) || qInit.allocate(buf, reqCapacity, normCapacity) ||
             q075.allocate(buf, reqCapacity, normCapacity)) {

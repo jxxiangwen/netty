@@ -376,7 +376,7 @@ public abstract class Recycler<T> {
 
         // transfer as many items as we can from this queue to the stack, returning true if any were transferred
         @SuppressWarnings("rawtypes")
-        boolean transfer(Stack<?> dst) {
+        boolean  transfer(Stack<?> dst) {
             Link head = this.head.link;
             if (head == null) {
                 return false;
@@ -463,13 +463,31 @@ public abstract class Recycler<T> {
         final int maxDelayedQueues;
 
         private final int maxCapacity;
+        /**
+         * 控制回收的比例
+         */
         private final int ratioMask;
+        /**
+         * 保存对象
+         */
         private DefaultHandle<?>[] elements;
         private int size;
         private int handleRecycleCount = -1; // Start with -1 so the first one will be recycled.
+        /**
+         * 用于跨线程释放
+         */
         private WeakOrderQueue cursor, prev;
         private volatile WeakOrderQueue head;
 
+        /**
+         * 每一个和线程绑定
+         * @param parent
+         * @param thread
+         * @param maxCapacity
+         * @param maxSharedCapacityFactor
+         * @param ratioMask
+         * @param maxDelayedQueues
+         */
         Stack(Recycler<T> parent, Thread thread, int maxCapacity, int maxSharedCapacityFactor,
               int ratioMask, int maxDelayedQueues) {
             this.parent = parent;
@@ -506,6 +524,7 @@ public abstract class Recycler<T> {
         DefaultHandle<T> pop() {
             int size = this.size;
             if (size == 0) {
+                // 看看是不是有对象跑到其他线程里面去了，尝试捞回来
                 if (!scavenge()) {
                     return null;
                 }
@@ -610,6 +629,7 @@ public abstract class Recycler<T> {
                 return;
             }
             if (size == elements.length) {
+                // 扩容
                 elements = Arrays.copyOf(elements, min(size << 1, maxCapacity));
             }
 

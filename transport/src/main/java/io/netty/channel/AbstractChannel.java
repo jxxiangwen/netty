@@ -463,7 +463,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         public final SocketAddress remoteAddress() {
             return remoteAddress0();
         }
-
+        // child 注册
         @Override
         public final void register(EventLoop eventLoop, final ChannelPromise promise) {
             if (eventLoop == null) {
@@ -478,7 +478,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                         new IllegalStateException("incompatible event loop type: " + eventLoop.getClass().getName()));
                 return;
             }
-
+            // 绑定eventLoop 后续都要使用这个线程来执行操作
             AbstractChannel.this.eventLoop = eventLoop;
 
             if (eventLoop.inEventLoop()) {
@@ -515,6 +515,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     return;
                 }
                 boolean firstRegistration = neverRegistered;
+                // 会绑定channel到底层的selector上，但是不会注册关注的事件
                 doRegister();
                 neverRegistered = false;
                 registered = true;
@@ -522,17 +523,19 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
                 // 触发handle added事件
-                pipeline.invokeHandlerAddedIfNeeded();
+                 pipeline.invokeHandlerAddedIfNeeded();
 
                 safeSetSuccess(promise);
                 // 触发注册通知
                 pipeline.fireChannelRegistered();
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.
-                // 第一次这里不会进入，因为前面只是注册了select事件，还没有bind端口，首次注册要函数返回之后才会bind，才变成active
+                // serverSocketChannel第一次这里不会进入，因为前面只是注册了select事件，还没有bind端口，
+                // 首次注册要函数返回之后才会bind，才变成active, 而如果是server收到新连接给新连接绑定read事件的时候这里是true，
+                // 因为已经连接了
                 if (isActive()) {
                     if (firstRegistration) {
-                        // 触发active事件
+                        // 触发active事件,最终会调用到 unsafe.beginRead()，此处才是真正的注册关注的事件
                         pipeline.fireChannelActive();
                     } else if (config().isAutoRead()) {
                         // This channel was registered before and autoRead() is set. This means we need to begin read
@@ -550,6 +553,12 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
         }
 
+        /**
+         * 执行端口绑定
+         *
+         * @param localAddress 本地地址
+         * @param promise      异步
+         */
         @Override
         public final void bind(final SocketAddress localAddress, final ChannelPromise promise) {
             assertEventLoop();
@@ -573,6 +582,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             boolean wasActive = isActive();
             try {
+                // 调用子类的doBind
                 doBind(localAddress);
             } catch (Throwable t) {
                 safeSetFailure(promise, t);
@@ -854,6 +864,10 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             });
         }
 
+        /**
+         * 服务端端口绑定后会通过HeadContent进入此处关注accept事件
+         * 服务端有新连接进入会通过HeadContext进入此处关注read时间
+         */
         @Override
         public final void beginRead() {
             assertEventLoop();

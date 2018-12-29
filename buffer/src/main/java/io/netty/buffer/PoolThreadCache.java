@@ -306,7 +306,7 @@ final class PoolThreadCache {
     }
 
     private MemoryRegionCache<?> cacheForTiny(PoolArena<?> area, int normCapacity) {
-        int idx = PoolArena.tinyIdx(normCapacity);
+        int idx = PoolArena.tinyIdx(normCapacity); //计算容量在cache中的数组下表
         if (area.isDirect()) {
             return cache(tinySubPageDirectCaches, idx);
         }

@@ -94,9 +94,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         succeededFuture = new SucceededChannelFuture(channel, null);
         voidPromise =  new VoidChannelPromise(channel, true);
 
-        // 实现了ChannelOutboundHandler
+        // 实现了ChannelInboundHandler
         tail = new TailContext(this);
-        // 实现了ChannelOutboundHandler和实现了ChannelInboundHandler
+        // 实现了ChannelOutboundHandler和ChannelInboundHandler
         head = new HeadContext(this);
 
         head.next = tail;
@@ -207,6 +207,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     public final ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler) {
         final AbstractChannelHandlerContext newCtx;
         synchronized (this) {
+            // 判断channel是否被重复添加
             checkMultiplicity(handler);
 
             newCtx = newContext(group, filterName(name, handler), handler);
@@ -480,6 +481,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     private AbstractChannelHandlerContext remove(final AbstractChannelHandlerContext ctx) {
+        // head和tail不能删除
         assert ctx != head && ctx != tail;
 
         synchronized (this) {
@@ -635,6 +637,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         try {
             // We must call setAddComplete before calling handlerAdded. Otherwise if the handlerAdded method generates
             // any pipeline events ctx.handler() will miss them because the state will not allow it.
+            // 之前老板本是先调用added再调用complete，如果按照老板本的话，如果handlerAdded里面有pipeline事件
+            // 那么就会丢掉，因为invokeHandler的时候会判断状态是否已经完成
             ctx.setAddComplete();
             ctx.handler().handlerAdded(ctx);
         } catch (Throwable t) {
@@ -940,6 +944,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
     @Override
     public final ChannelPipeline fireChannelActive() {
+        // 调用HeadContext的channelActive 方法
         AbstractChannelHandlerContext.invokeChannelActive(head);
         return this;
     }
@@ -1098,12 +1103,21 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return voidPromise;
     }
 
+    /**
+     * 检查context名字是否有重复
+     * @param name context名字
+     */
     private void checkDuplicateName(String name) {
         if (context0(name) != null) {
             throw new IllegalArgumentException("Duplicate handler name: " + name);
         }
     }
 
+    /**
+     * 查询名称为name的context
+     * @param name context名称
+     * @return 名称为name的context
+     */
     private AbstractChannelHandlerContext context0(String name) {
         AbstractChannelHandlerContext context = head.next;
         while (context != tail) {

@@ -404,7 +404,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         // 从taskQueue中取出任务
         Runnable task = pollTask();
         if (task == null) {
-            afterRunningAllTasks();
+            afterRunningAllTasks( );
             return false;
         }
 
@@ -418,7 +418,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
             // Check timeout every 64 tasks because nanoTime() is relatively expensive.
             // XXX: Hard-coded value - will make it configurable if it is really a problem.
-            // 每运行64个任务检查一次超时
+            // 每运行64个任务检查一次超时, 没有每次检查是因为nanoTime比较耗时
             if ((runTasks & 0x3F) == 0) {
                 lastExecutionTime = ScheduledFutureTask.nanoTime();
                 if (lastExecutionTime >= deadline) {
@@ -483,7 +483,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     }
 
     /**
-     *
+     * 子类实现，doStartThread()方法会使用ThreadPerTaskExecutor生成一个Thread执行run方法
      */
     protected abstract void run();
 
