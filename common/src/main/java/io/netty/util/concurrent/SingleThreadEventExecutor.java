@@ -810,7 +810,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                 }
             }
         }
-
+        // wakeup是因为没有非io任务的时候select是阻塞的，添加任务后想要及时响应就要唤醒线程
         if (!addTaskWakesUp && wakesUpForTask(task)) {
             wakeup(inEventLoop);
         }

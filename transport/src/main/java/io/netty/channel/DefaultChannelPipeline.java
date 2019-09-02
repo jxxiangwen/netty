@@ -213,7 +213,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             newCtx = newContext(group, filterName(name, handler), handler);
 
             addLast0(newCtx);
-
+            // channel还没有绑定到eventloop上，设置状态为pending，同时设置回调任务，当注册后使用handlerAdded回调将handler注册到channel上
             // If the registered is false it means that the channel was not registered on an eventloop yet.
             // In this case we add the context to the pipeline and add a task that will call
             // ChannelHandler.handlerAdded(...) once the channel is registered.
@@ -682,7 +682,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
                     ctx.handler().getClass().getName() + ".handlerRemoved() has thrown an exception.", t));
         }
     }
-
+    // 一些handler在没有register之前add了，会处于pending状态，执行这个之后会变成added状态
     final void invokeHandlerAddedIfNeeded() {
         assert channel.eventLoop().inEventLoop();
         if (firstRegistration) {
@@ -1398,7 +1398,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
 
         @Override
-        public void read(ChannelHandlerContext ctx) {
+        public void read(ChannelHandlerContext ctx) {// 设置selectionKey.interestOps,并不会真正的读消息，读是通过select来的
             unsafe.beginRead();
         }
 
@@ -1432,7 +1432,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
                 destroy();
             }
         }
-
+        // 服务端绑定之后会执行这个方法
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             ctx.fireChannelActive();
@@ -1456,7 +1456,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
             readIfIsAutoRead();
         }
-
+        // 最终就是设置selectionKey.interestOps
         private void readIfIsAutoRead() {
             if (channel.config().isAutoRead()) {
                 channel.read();

@@ -119,7 +119,7 @@ public class FixedChannelPool extends SimpleChannelPool {
      *                              acquire a {@link Channel} will be delayed until a connection is returned to the
      *                              pool again.
      * @param maxPendingAcquires    the maximum number of pending acquires. Once this is exceed acquire tries will
-     *                              be failed.
+     *                              be failed. 最大等待申请
      */
     public FixedChannelPool(Bootstrap bootstrap,
                             ChannelPoolHandler handler,
@@ -261,6 +261,7 @@ public class FixedChannelPool extends SimpleChannelPool {
             promise.setFailure(POOL_CLOSED_ON_ACQUIRE_EXCEPTION);
             return;
         }
+        // 为什么这里不用担心多个线程一起比较？因为不会有多个线程，都是在executor线程中执行
         if (acquiredChannelCount.get() < maxConnections) {
             assert acquiredChannelCount.get() >= 0;
 
@@ -268,17 +269,21 @@ public class FixedChannelPool extends SimpleChannelPool {
             // EventLoop
             Promise<Channel> p = executor.newPromise();
             AcquireListener l = new AcquireListener(promise);
+            // 增加acquiredChannelCount，同时记录自己是申请得来的
             l.acquired();
+            // 成功后需要处理一个等待的任务
             p.addListener(l);
             super.acquire(p);
         } else {
             if (pendingAcquireCount >= maxPendingAcquires) {
+                // 超过最大等待数，直接失败
                 promise.setFailure(FULL_EXCEPTION);
             } else {
                 AcquireTask task = new AcquireTask(promise);
+                // 放入等待队列
                 if (pendingAcquireQueue.offer(task)) {
                     ++pendingAcquireCount;
-
+                    // 如果存在超时任务就加入定时调度
                     if (timeoutTask != null) {
                         task.timeoutFuture = executor.schedule(timeoutTask, acquireTimeoutNanos, TimeUnit.NANOSECONDS);
                     }
@@ -342,7 +347,7 @@ public class FixedChannelPool extends SimpleChannelPool {
             if (task == null) {
                 break;
             }
-
+            // 存在定时任务就取消
             // Cancel the timeout if one was scheduled
             ScheduledFuture<?> timeoutFuture = task.timeoutFuture;
             if (timeoutFuture != null) {
@@ -423,8 +428,10 @@ public class FixedChannelPool extends SimpleChannelPool {
                 originalPromise.setSuccess(future.getNow());
             } else {
                 if (acquired) {
+                    // 如果是申请步骤的channel，那么需要减少acquiredChannelCount
                     decrementAndRunTaskQueue();
                 } else {
+                    // 不是申请得来的，也就是说是pending队列的就不需要减少acquiredChannelCount
                     runTaskQueue();
                 }
 

@@ -82,6 +82,7 @@ public class SimpleChannelPool implements ChannelPool {
      *                           still healthy when obtain from the {@link ChannelPool}
      * @param releaseHealthCheck will check channel health before offering back if this parameter set to {@code true};
      *                           otherwise, channel health is only checked at acquisition time
+     *                           如果releaseHealthCheck为true在放回连接池前会检查是否健康，否则就只在申请的时候检查是否健康
      */
     public SimpleChannelPool(Bootstrap bootstrap, final ChannelPoolHandler handler, ChannelHealthChecker healthCheck,
                              boolean releaseHealthCheck) {
@@ -98,6 +99,7 @@ public class SimpleChannelPool implements ChannelPool {
      * @param releaseHealthCheck will check channel health before offering back if this parameter set to {@code true};
      *                           otherwise, channel health is only checked at acquisition time
      * @param lastRecentUsed    {@code true} {@link Channel} selection will be LIFO, if {@code false} FIFO.
+     *                                      如果lastRecentUsed使用LIFO（后进先出）算法，否则使用FIFO（先进先出）算法
      */
     public SimpleChannelPool(Bootstrap bootstrap, final ChannelPoolHandler handler, ChannelHealthChecker healthCheck,
                              boolean releaseHealthCheck, boolean lastRecentUsed) {
@@ -173,6 +175,7 @@ public class SimpleChannelPool implements ChannelPool {
         try {
             final Channel ch = pollChannel();
             if (ch == null) {
+                // 队列中不存在空闲channel，创建
                 // No Channel left in the pool bootstrap a new Channel
                 Bootstrap bs = bootstrap.clone();
                 bs.attr(POOL_KEY, this);
@@ -189,6 +192,7 @@ public class SimpleChannelPool implements ChannelPool {
                 }
                 return promise;
             }
+            // 对已存在的channel做健康检查
             EventLoop loop = ch.eventLoop();
             if (loop.inEventLoop()) {
                 doHealthCheck(ch, promise);
@@ -240,6 +244,7 @@ public class SimpleChannelPool implements ChannelPool {
         if (future.isSuccess()) {
             if (future.getNow()) {
                 try {
+                    // 健康检查通过
                     ch.attr(POOL_KEY).set(this);
                     handler.channelAcquired(ch);
                     promise.setSuccess(ch);
@@ -247,11 +252,15 @@ public class SimpleChannelPool implements ChannelPool {
                     closeAndFail(ch, cause, promise);
                 }
             } else {
+                // 健康检查不通过
                 closeChannel(ch);
+                // 重新申请
                 acquireHealthyFromPoolOrNew(promise);
             }
         } else {
+            // 异步检查不通过
             closeChannel(ch);
+            // 重新申请
             acquireHealthyFromPoolOrNew(promise);
         }
     }
@@ -296,6 +305,7 @@ public class SimpleChannelPool implements ChannelPool {
     private void doReleaseChannel(Channel channel, Promise<Void> promise) {
         assert channel.eventLoop().inEventLoop();
         // Remove the POOL_KEY attribute from the Channel and check if it was acquired from this pool, if not fail.
+        // 检查channel是否通过本对象获取
         if (channel.attr(POOL_KEY).getAndSet(null) != this) {
             closeAndFail(channel,
                          // Better include a stacktrace here as this is an user error.
@@ -339,8 +349,10 @@ public class SimpleChannelPool implements ChannelPool {
     private void releaseAndOfferIfHealthy(Channel channel, Promise<Void> promise, Future<Boolean> future)
             throws Exception {
         if (future.getNow()) { //channel turns out to be healthy, offering and releasing it.
+            // 健康
             releaseAndOffer(channel, promise);
         } else { //channel not healthy, just releasing it.
+            // 不健康，不放回队列
             handler.channelReleased(channel);
             promise.setSuccess(null);
         }

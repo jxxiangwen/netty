@@ -315,7 +315,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
                         // Registration was successful, so set the correct executor to use.
                         // See https://github.com/netty/netty/issues/2586
                         promise.registered();
-
+                        // 会调用pipeline的bind，最终调用HeadContext的bind,再调用unsafe的bind,调用AbstractChannel的doBind,最终调用响应子类
                         doBind0(regFuture, channel, localAddress, promise);
                     }
                 }
@@ -327,7 +327,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
-            // 创建channel
+            // 创建channel，会创建unsafe，pipeline
             channel = channelFactory.newChannel();
             // 加入pipeline，设置option和AttributeKey
             init(channel);
@@ -344,7 +344,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
 
         // 注册channel到EventLoopGroup中,使用AbstractChannel内部类AbstractUnsafe中的register
         // 实际使用的是子类Channel(比如AbstractNioChannel)中的doRegister注册,doRegister会注册select事件
-        // client group 返回workGroup 而server 返回bossGroup
+        // client group 返回workGroup 而server 返回bossGroup,
+        // server的workGroup在ServerBootstrapAcceptor处理新连接时使用
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {

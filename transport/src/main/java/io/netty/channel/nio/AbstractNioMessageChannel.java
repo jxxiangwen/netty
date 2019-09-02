@@ -79,6 +79,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             try {
                 try {
                     do {
+                        // 服务端通过serverSocketChannel.accept()获取客户端channel，channel加入readBuf，同时返回1
                         int localRead = doReadMessages(readBuf);
                         if (localRead == 0) {
                             break;
@@ -101,7 +102,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                 }
                 readBuf.clear();
                 allocHandle.readComplete();
-                pipeline.fireChannelReadComplete();
+                pipeline.fireChannelReadComplete();// 会执行readIfIsAutoRead，如果自动读取会设置selector
 
                 if (exception != null) {
                     closed = closeOnReadError(exception);
@@ -138,7 +139,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             Object msg = in.current();
             if (msg == null) {
                 // Wrote all messages.
-                if ((interestOps & SelectionKey.OP_WRITE) != 0) {
+                if ((interestOps & SelectionKey.OP_WRITE) != 0) {// 所有消息都写完了，取消可写事件关注，不然每次都会返回可写
                     key.interestOps(interestOps & ~SelectionKey.OP_WRITE);
                 }
                 break;

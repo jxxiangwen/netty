@@ -27,6 +27,8 @@ final class DefaultSelectStrategy implements SelectStrategy {
 
     @Override
     public int calculateStrategy(IntSupplier selectSupplier, boolean hasTasks) throws Exception {
+        // 如果有任务就依靠selectSupplier来决定，否则就返回SELECT，代表阻塞的select
+        // selectSupplier 正常返回的是select.selectNow的结果，也就是产生就绪事件的通道个数
         return hasTasks ? selectSupplier.get() : SelectStrategy.SELECT;
     }
 }

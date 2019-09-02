@@ -463,7 +463,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         public final SocketAddress remoteAddress() {
             return remoteAddress0();
         }
-        // child 注册
+        // child 注册,为channel绑定eventLoop
         @Override
         public final void register(EventLoop eventLoop, final ChannelPromise promise) {
             if (eventLoop == null) {
@@ -522,7 +522,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
-                // 触发handle added事件
+                // 如果存在pendingHandlerCallbackHead 就执行，pendingHandlerCallbackHead是channel注册之前添加的handler，还没有绑定到
                  pipeline.invokeHandlerAddedIfNeeded();
 
                 safeSetSuccess(promise);
@@ -540,7 +540,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     } else if (config().isAutoRead()) {
                         // This channel was registered before and autoRead() is set. This means we need to begin read
                         // again so that we process inbound data.
-                        //
+                        // 这里会注册关注的事件
                         // See https://github.com/netty/netty/issues/4805
                         beginRead();
                     }
@@ -593,7 +593,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             if (!wasActive && isActive()) {
                 invokeLater(new Runnable() {
                     @Override
-                    public void run() {
+                    public void run() {// HeadContext的channelActive会调用readIfIsAutoRead,里面调用channel.read关注事件
                         pipeline.fireChannelActive();
                     }
                 });
@@ -866,7 +866,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
         /**
          * 服务端端口绑定后会通过HeadContent进入此处关注accept事件
-         * 服务端有新连接进入会通过HeadContext进入此处关注read时间
+         * 服务端有新连接进入会通过HeadContext进入此处关注read事件
          */
         @Override
         public final void beginRead() {

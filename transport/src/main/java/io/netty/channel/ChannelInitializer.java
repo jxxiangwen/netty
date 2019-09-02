@@ -134,7 +134,7 @@ public abstract class ChannelInitializer<C extends Channel> extends ChannelInbou
                 // Explicitly call exceptionCaught(...) as we removed the handler before calling initChannel(...).
                 // We do so to prevent multiple calls to initChannel(...).
                 exceptionCaught(ctx, cause);
-            } finally {
+            } finally {// 初始化的handler初始化完成后需要移除
                 ChannelPipeline pipeline = ctx.pipeline();
                 if (pipeline.context(this) != null) {
                     pipeline.remove(this);

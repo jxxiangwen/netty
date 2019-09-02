@@ -212,7 +212,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             }
             return new SelectorTuple(unwrappedSelector);
         }
-
+        // 下面的优化是为了替换掉SelectorImpl保存准备好keys的集合，因为只会用到add接口，用数组实现是个更好的选择
         final Class<?> selectorImplClass = (Class<?>) maybeSelectorImplClass;
         final SelectedSelectionKeySet selectedKeySet = new SelectedSelectionKeySet();
 
@@ -446,6 +446,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             try {
                 try {
                     // 如果有任务，就会返回select的结果(>=0)，走到default，往下走，
+                    // selectStrategy中的selectSupplier会执行selectNow
                     // 如果没有任务，就会走到SELECT，
                     switch (selectStrategy.calculateStrategy(selectNowSupplier, hasTasks())) {
                     case SelectStrategy.CONTINUE:
@@ -467,8 +468,11 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         // true too early.
                         //
                         // 'wakenUp' is set to true too early if:
+                        // 这种情况会导致下一次执行select的时候由于没有准备好的fd，导致select阻塞直到超时，
+                        // 而这种情况下其他任务得不到执行，带来不必要的cpu浪费
                         // 1) Selector is waken up between 'wakenUp.set(false)' and
                         //    'selector.select(...)'. (BAD)
+                        // 这种情况就没有问题，因为下一次select因为有准备的fd而立即返回了
                         // 2) Selector is waken up between 'selector.select(...)' and
                         //    'if (wakenUp.get()) { ... }'. (OK)
                         //
@@ -485,7 +489,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         // It is inefficient in that it wakes up the selector for both
                         // the first case (BAD - wake-up required) and the second case
                         // (OK - no wake-up required).
-
+                        // 这步骤就是防止有非io任务的时候做了不必要的select阻塞
                         if (wakenUp.get()) {
                             selector.wakeup();
                         }
@@ -503,7 +507,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 cancelledKeys = 0;
                 needsToSelectAgain = false;
                 final int ioRatio = this.ioRatio;
-                if (ioRatio == 100) {
+                if (ioRatio == 100) {// ioRatio == 100会执行完io之后运行所有非io任务
                     try {
                         // 执行准备好的IO
                         processSelectedKeys();
@@ -512,7 +516,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         // 运行所有非IO任务
                         runAllTasks();
                     }
-                } else {
+                } else {// ioRatio在0到100之间，值越大，执行非io任务时间越短
                     final long ioStartTime = System.nanoTime();
                     try {
                         processSelectedKeys();

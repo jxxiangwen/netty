@@ -28,6 +28,7 @@ import static io.netty.util.internal.PriorityQueueNode.INDEX_NOT_IN_QUEUE;
  * {@link PriorityQueueNode} for the purpose of maintaining the index in the priority queue.
  * @param <T> The object that is maintained in the queue. 小根堆
  */
+// 小根堆实现
 public final class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQueue<T>
                                                                      implements PriorityQueue<T> {
     private static final PriorityQueueNode[] EMPTY_ARRAY = new PriorityQueueNode[0];
@@ -84,11 +85,12 @@ public final class DefaultPriorityQueue<T extends PriorityQueueNode> extends Abs
 
     @Override
     public boolean offer(T e) {
+        // 结点已经在队列中
         if (e.priorityQueueIndex(this) != INDEX_NOT_IN_QUEUE) {
             throw new IllegalArgumentException("e.priorityQueueIndex(): " + e.priorityQueueIndex(this) +
                     " (expected: " + INDEX_NOT_IN_QUEUE + ") + e: " + e);
         }
-
+        // 扩容
         // Check that the array capacity is enough to hold values by doubling capacity.
         if (size >= queue.length) {
             // Use a policy which allows for a 0 initial capacity. Same policy as JDK's priority queue, double when
@@ -276,7 +278,7 @@ public final class DefaultPriorityQueue<T extends PriorityQueueNode> extends Abs
             T parent = queue[iParent];
 
             // If the bubbleUp node is less than the parent, then we have found a spot to insert and still maintain
-            // min-heap properties. 如果比父节点小就找到了
+            // min-heap properties. 如果比父节点大就找到了插入位置
             if (comparator.compare(node, parent) >= 0) {
                 break;
             }
