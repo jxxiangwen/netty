@@ -258,7 +258,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      * Create a new {@link Channel} and bind it.
      */
     public ChannelFuture bind(int inetPort) {
-        return bind(new InetSocketAddress(inetPort));
+        return bind(new InetSocketAddress(inetPort)) ;
     }
 
     /**
@@ -329,7 +329,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         try {
             // 创建channel，会创建unsafe，pipeline
             channel = channelFactory.newChannel();
-            // 加入pipeline，设置option和AttributeKey
+            // ServerBootStrap将ChannelInitializer加入pipeline，BootStrap将handler加入pipeline，设置option和AttributeKey
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {

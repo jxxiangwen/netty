@@ -114,11 +114,12 @@ public class FastThreadLocalTest {
             @Override
             public void run() {
                 threadLocal.set("1");
-                threadLocal.remove();
-                threadLocal.set("2");
-                threadLocal.remove();
                 threadLocal2.set("1");
                 threadLocal2.remove();
+                threadLocal.set("2");
+                threadLocal.remove();
+                threadLocal.remove();
+
                 threadLocal2.set("2");
                 threadLocal2.remove();
             }

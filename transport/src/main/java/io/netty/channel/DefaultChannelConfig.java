@@ -325,9 +325,9 @@ public class DefaultChannelConfig implements ChannelConfig {
     @Override
     public ChannelConfig setAutoRead(boolean autoRead) {
         boolean oldAutoRead = AUTOREAD_UPDATER.getAndSet(this, autoRead ? 1 : 0) == 1;
-        if (autoRead && !oldAutoRead) {
+        if (autoRead && !oldAutoRead) {// 原只值自动读而新值为自动读，读一次
             channel.read();
-        } else if (!autoRead && oldAutoRead) {
+        } else if (!autoRead && oldAutoRead) {// 原值自动读而新值为不自动读，非阻塞io会清除关注的读事件
             autoReadCleared();
         }
         return this;

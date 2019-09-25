@@ -65,7 +65,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     private volatile SocketAddress localAddress;
     private volatile SocketAddress remoteAddress;
     private volatile EventLoop eventLoop;
-    private volatile boolean registered;
+    private volatile boolean registered;// 对nio代表已经调用过channel的register方法了
     private boolean closeInitiated;
 
     /**
@@ -522,7 +522,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
-                // 如果存在pendingHandlerCallbackHead 就执行，pendingHandlerCallbackHead是channel注册之前添加的handler，还没有绑定到
+                // 如果存在pendingHandlerCallbackHead 就执行，pendingHandlerCallbackHead是channel注册之前添加的handler,ServerBootStrap的ChannelInitializer就是在这一步执行
                  pipeline.invokeHandlerAddedIfNeeded();
 
                 safeSetSuccess(promise);
@@ -589,7 +589,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 closeIfClosed();
                 return;
             }
-
+            // 之前没激活而现在激活了，代表duBind成功了
             if (!wasActive && isActive()) {
                 invokeLater(new Runnable() {
                     @Override

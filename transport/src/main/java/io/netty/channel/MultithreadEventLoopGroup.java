@@ -37,7 +37,8 @@ public abstract class MultithreadEventLoopGroup extends MultithreadEventExecutor
     private static final int DEFAULT_EVENT_LOOP_THREADS;
 
     static {
-        // 1/io.netty.eventLoopThreads/ 2 * core(可由io.netty.availableProcessors控制)
+        // 1.io.netty.eventLoopThreads
+        // default: 2 * availableProcessors(可由io.netty.availableProcessors控制)
         DEFAULT_EVENT_LOOP_THREADS = Math.max(1, SystemPropertyUtil.getInt(
                 "io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
 

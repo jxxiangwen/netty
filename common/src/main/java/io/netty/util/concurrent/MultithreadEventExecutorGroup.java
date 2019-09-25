@@ -32,7 +32,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
 
     private final EventExecutor[] children;
     /**
-     * 使用children生成的只读set
+     * 使用children生成的只读set,在构造函数最后会赋值
      */
     private final Set<EventExecutor> readonlyChildren;
     private final AtomicInteger terminatedChildren = new AtomicInteger();

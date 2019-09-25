@@ -46,7 +46,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
             AtomicIntegerFieldUpdater.newUpdater(AbstractChannelHandlerContext.class, "handlerState");
 
     /**
-     * {@link ChannelHandler#handlerAdded(ChannelHandlerContext)} is about to be called.
+     * {@link ChannelHandler#handlerAdded(ChannelHandlerContext)} is about to be called.如果没注册或者不在当前eventloop会有这个中间状态
      */
     private static final int ADD_PENDING = 1;
     /**

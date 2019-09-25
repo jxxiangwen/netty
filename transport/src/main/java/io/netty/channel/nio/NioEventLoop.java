@@ -641,7 +641,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             selectedKeys.keys[i] = null;
 
             final Object a = k.attachment();
-
+            // 调用jdk的register的时候会把channel作为attachment传递进去
             if (a instanceof AbstractNioChannel) {
                 processSelectedKey(k, (AbstractNioChannel) a);
             } else {

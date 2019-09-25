@@ -43,13 +43,15 @@ import java.util.Set;
  */
 
 /**
- * 之所以快是因为java原生的ThreadLocal是存储在Thread中的map，而FastThreadLocal将其优化为了数组
+ * 之所以快是因为java原生的ThreadLocal是存储在Thread中的map，而FastThreadLocal使用FastThreadLocalThread
+ * 中带的InternalThreadLocalMap变量，而InternalThreadLocalMap是使用数组实现的
  * @param <V>
  */
 public class FastThreadLocal<V> {
 
     /**
-     * 主要是为了removeAll，用于存储当前线程已经存在的所有FastThreadLocal，removeAll可以通过这个找到所有FastThreadLocal用于删除
+     * 主要是为了removeAll，用于存储当前线程已经存在的所有FastThreadLocal，
+     * removeAll可以通过这个找到所有FastThreadLocal用于删除，不用遍历数组
      */
     private static final int variablesToRemoveIndex = InternalThreadLocalMap.nextVariableIndex();
 
@@ -130,6 +132,7 @@ public class FastThreadLocal<V> {
         variablesToRemove.remove(variable);
     }
 
+    // 标识自己在InternalThreadLocalMap数组中的下标
     private final int index;
 
     public FastThreadLocal() {

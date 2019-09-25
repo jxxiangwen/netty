@@ -1178,7 +1178,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             task = task.next;
         }
     }
-
+        // added决定是添加added callback任务还是removed callback任务，主要用于还没有register
         private void callHandlerCallbackLater(AbstractChannelHandlerContext ctx, boolean added) {
             assert !registered;
 
@@ -1436,7 +1436,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             ctx.fireChannelActive();
-
+            // 服务端设置accept事件关注，客户端设置read事件关注
             readIfIsAutoRead();
         }
 

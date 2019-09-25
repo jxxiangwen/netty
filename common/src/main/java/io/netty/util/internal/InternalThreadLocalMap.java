@@ -35,6 +35,8 @@ import java.util.WeakHashMap;
  * The internal data structure that stores the thread-local variables for Netty and all {@link FastThreadLocal}s.
  * Note that this class is for internal use only and is subject to change at any time.  Use {@link FastThreadLocal}
  * unless you know what you are doing.
+ * 如果使用的是FastThreadLocalThread，那么会在变量中存储InternalThreadLocalMap，否则就会使用UnpaddedInternalThreadLocalMap中
+ * JDK自带的ThreadLocal来存储InternalThreadLocalMap
  */
 public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap {
 
@@ -74,6 +76,11 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
         }
     }
 
+    /**
+     * FastThreadLocalThread使用的是变量存储InternalThreadLocalMap所以可以快速获取
+     * @param thread
+     * @return
+     */
     private static InternalThreadLocalMap fastGet(FastThreadLocalThread thread) {
         InternalThreadLocalMap threadLocalMap = thread.threadLocalMap();
         if (threadLocalMap == null) {
@@ -82,6 +89,10 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
         return threadLocalMap;
     }
 
+    /**
+     * 不是FastThreadLocalThread使用的是变UnpaddedInternalThreadLocalMap中jdk的ThreadLocal存储slowThreadLocalMap
+     * @return
+     */
     private static InternalThreadLocalMap slowGet() {
         ThreadLocal<InternalThreadLocalMap> slowThreadLocalMap = UnpaddedInternalThreadLocalMap.slowThreadLocalMap;
         InternalThreadLocalMap ret = slowThreadLocalMap.get();

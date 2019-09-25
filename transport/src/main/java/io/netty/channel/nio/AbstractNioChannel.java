@@ -256,7 +256,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
                 } else {
                     connectPromise = promise;
                     requestedRemoteAddress = remoteAddress;
-
+                    // TODO timeout怎么做到的
                     // Schedule connect timeout.
                     int connectTimeoutMillis = config().getConnectTimeoutMillis();
                     if (connectTimeoutMillis > 0) {

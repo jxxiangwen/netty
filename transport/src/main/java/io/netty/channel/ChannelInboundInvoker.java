@@ -14,7 +14,7 @@
  * under the License.
  */
 package io.netty.channel;
-
+// 主要处理事件相关，channelRegistered，ChannelActive，ChannelRead等等
 public interface ChannelInboundInvoker {
 
     /**

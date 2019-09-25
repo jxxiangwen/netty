@@ -107,6 +107,7 @@ public class HashedWheelTimer implements Timer {
     private final HashedWheelBucket[] wheel;
     private final int mask;
     private final CountDownLatch startTimeInitialized = new CountDownLatch(1);
+    // 使用mpsc队列不用担心并发问题性能还很高
     private final Queue<HashedWheelTimeout> timeouts = PlatformDependent.newMpscQueue();
     private final Queue<HashedWheelTimeout> cancelledTimeouts = PlatformDependent.newMpscQueue();
     private final AtomicLong pendingTimeouts = new AtomicLong(0);
@@ -574,9 +575,10 @@ public class HashedWheelTimer implements Timer {
 
             for (; ; ) {
                 final long currentTime = System.nanoTime() - startTime;
-                // 保证为10毫秒的倍数
+                // 加999999是因为向上取整1毫秒，假如距离下一个tick为1000010纳秒，不能sleep 1毫秒，要2毫秒，加999999就是为了这个
                 long sleepTimeMs = (deadline - currentTime + 999999) / 1000000;
 
+                // 时间到了
                 if (sleepTimeMs <= 0) {
                     if (currentTime == Long.MIN_VALUE) {
                         return -Long.MAX_VALUE;
@@ -590,7 +592,7 @@ public class HashedWheelTimer implements Timer {
                 // the JVM if it runs on windows.
                 //
                 // See https://github.com/netty/netty/issues/356
-                // windows睡眠不准的bug
+                // windows睡眠不准的bug，如果sleep不够10ms要取整
                 if (PlatformDependent.isWindows()) {
                     sleepTimeMs = sleepTimeMs / 10 * 10;
                 }
@@ -598,6 +600,7 @@ public class HashedWheelTimer implements Timer {
                 try {
                     Thread.sleep(sleepTimeMs);
                 } catch (InterruptedException ignored) {
+                    // 中断返回负数不会执行定时任务
                     if (WORKER_STATE_UPDATER.get(HashedWheelTimer.this) == WORKER_STATE_SHUTDOWN) {
                         return Long.MIN_VALUE;
                     }
