@@ -35,6 +35,13 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
+/**
+ * 实现ChannelHandlerContext，也就实现ChannelInboundInvoker和ChannelOutboundInvoker,
+ * 调用这两者方法的时候会通过next或者prev查找AbstractChannelHandlerContext，同时实现ChannelHandlerContext也包含handler()方法，
+ * 调用ChannelInboundInvoker或者ChannelOutboundInvoker方法会通过handler()找到对应的ChannelInboundHandler或者ChannelOutboundHandler
+ * 执行，所以一般自己实现功能实现ChannelInboundHandler或者ChannelOutboundHandler就可以了
+ */
+
 abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         implements ChannelHandlerContext, ResourceLeakHint {
 
@@ -122,7 +129,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
     public String name() {
         return name;
     }
-
+    // ChannelInboundInvoker方法
     @Override
     public ChannelHandlerContext fireChannelRegistered() {
         invokeChannelRegistered(findContextInbound());
@@ -144,8 +151,10 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
     }
 
     private void invokeChannelRegistered() {
+        // 验证handler是否需要执行
         if (invokeHandler()) {
             try {
+                // 调用ChannelInboundHandler方法
                 ((ChannelInboundHandler) handler()).channelRegistered(this);
             } catch (Throwable t) {
                 notifyHandlerException(t);
@@ -286,15 +295,15 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
             } catch (Throwable error) {
                 if (logger.isDebugEnabled()) {
                     logger.debug(
-                        "An exception {}" +
-                        "was thrown by a user handler's exceptionCaught() " +
-                        "method while handling the following exception:",
-                        ThrowableUtil.stackTraceToString(error), cause);
+                            "An exception {}" +
+                                    "was thrown by a user handler's exceptionCaught() " +
+                                    "method while handling the following exception:",
+                            ThrowableUtil.stackTraceToString(error), cause);
                 } else if (logger.isWarnEnabled()) {
                     logger.warn(
-                        "An exception '{}' [enable DEBUG level for full stacktrace] " +
-                        "was thrown by a user handler's exceptionCaught() " +
-                        "method while handling the following exception:", error, cause);
+                            "An exception '{}' [enable DEBUG level for full stacktrace] " +
+                                    "was thrown by a user handler's exceptionCaught() " +
+                                    "method while handling the following exception:", error, cause);
                 }
             }
         } else {
@@ -819,7 +828,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
             final AbstractWriteTask task;
             if (flush) {
                 task = WriteAndFlushTask.newInstance(next, m, promise);
-            }  else {
+            } else {
                 task = WriteTask.newInstance(next, m, promise);
             }
             if (!safeExecute(executor, task, promise, m)) {
@@ -963,7 +972,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
     }
 
     final void setAddComplete() {
-        for (;;) {
+        for (; ; ) {
             int oldState = handlerState;
             // Ensure we never update when the handlerState is REMOVE_COMPLETE already.
             // oldState is usually ADD_PENDING but can also be REMOVE_COMPLETE when an EventExecutor is used that is not
@@ -982,7 +991,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
     /**
      * Makes best possible effort to detect if {@link ChannelHandler#handlerAdded(ChannelHandlerContext)} was called
      * yet. If not return {@code false} and if called or could not detect return {@code true}.
-     *
+     * <p>
      * If this method returns {@code false} we will not invoke the {@link ChannelHandler} but just forward the event.
      * This is needed as {@link DefaultChannelPipeline} may already put the {@link ChannelHandler} in the linked-list
      * but not called {@link ChannelHandler#handlerAdded(ChannelHandlerContext)}.
@@ -1136,7 +1145,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         };
 
         static WriteAndFlushTask newInstance(
-                AbstractChannelHandlerContext ctx, Object msg,  ChannelPromise promise) {
+                AbstractChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
             WriteAndFlushTask task = RECYCLER.get();
             init(task, ctx, msg, promise);
             return task;

@@ -49,7 +49,7 @@ public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf {
         REFCNT_FIELD_OFFSET = refCntFieldOffset;
     }
 
-    private static int realRefCnt(int rawCnt) {
+    private static int realRefCnt(int rawCnt) { // 如果rawCnt & 1 == 0 那么rawCnt就是偶数，返回的值就是rawCnt >>> 1
         return (rawCnt & 1) != 0 ? 0 : rawCnt >>> 1;
     }
 
@@ -57,7 +57,7 @@ public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf {
         super(maxCapacity);
     }
 
-    private int nonVolatileRawCnt() {
+    private int nonVolatileRawCnt() {// 区别就正在于refCntUpdater使用的是unsafe的getIntVolatile
         // TODO: Once we compile against later versions of Java we can replace the Unsafe usage here by varhandles.
         return REFCNT_FIELD_OFFSET != -1 ? PlatformDependent.getInt(this, REFCNT_FIELD_OFFSET)
                 : refCntUpdater.get(this);

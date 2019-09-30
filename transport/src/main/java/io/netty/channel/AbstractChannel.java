@@ -589,7 +589,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 closeIfClosed();
                 return;
             }
-            // 之前没激活而现在激活了，代表duBind成功了
+            // 之前没激活而现在激活了，代表doBind成功了
             if (!wasActive && isActive()) {
                 invokeLater(new Runnable() {
                     @Override
