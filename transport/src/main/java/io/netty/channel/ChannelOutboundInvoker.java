@@ -20,7 +20,7 @@ import io.netty.util.concurrent.FutureListener;
 
 import java.net.ConnectException;
 import java.net.SocketAddress;
-// 主要处理自己发起的io操作，bind，connect，close，read，write等等
+// 主要处理自己发起的io操作，bind，connect，close，read，write等等,方向是tail-->handler-->...-->handler-->head
 public interface ChannelOutboundInvoker {
 
     /**

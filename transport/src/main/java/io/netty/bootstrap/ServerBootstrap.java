@@ -180,7 +180,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
 
                 // 这里为什么放入任务队列而不直接执行不用担心bind(bind中HeadContext会去关注accept事件)先执行？
                 // ChannelInitializer会在AbstractChannel的register方法中的invokeHandlerAddedIfNeeded调用
-                // 而bind会通过future添加listener等待register成功之后才会将doBind加入任务队列，也就是这个任务一定早于doBind
+                // 而bind会通过future添加listener等待register成功之后才会将doBind0加入任务队列，也就是这个任务一定早于doBind0
                 ch.eventLoop().execute(new Runnable() {
                     @Override
                     public void run() {

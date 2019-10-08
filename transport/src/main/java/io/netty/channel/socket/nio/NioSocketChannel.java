@@ -314,7 +314,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
     @Override
     protected boolean doConnect(SocketAddress remoteAddress, SocketAddress localAddress) throws Exception {
         if (localAddress != null) {
-            // 绑定本地地址
+            // 本地地址不为空，绑定本地地址
             doBind0(localAddress);
         }
 
@@ -528,6 +528,7 @@ public class NioSocketChannel extends AbstractNioByteChannel implements io.netty
 
         private void calculateMaxBytesPerGatheringWrite() {
             // Multiply by 2 to give some extra space in case the OS can process write data faster than we can provide.
+            // TODO 理解为什么，设置为发送缓冲区的一倍，以防os处理写数据的速度比我们提供的速度快
             int newSendBufferSize = getSendBufferSize() << 1;
             if (newSendBufferSize > 0) {
                 setMaxBytesPerGatheringWrite(getSendBufferSize() << 1);
